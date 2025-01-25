@@ -1,0 +1,12 @@
+{
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+        "outDir": "./src/backend", // Output compiled JS files to the backend folder
+        "rootDir": "./src/backend" // Only include the back-end files
+    },
+    "include": [
+        "src/backend/**/*"
+    ], // Include only back-end files
+    "exclude": []
+}
+

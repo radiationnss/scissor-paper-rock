@@ -1,0 +1,11 @@
+{
+    "extends": "./tsconfig.json",
+    "compilerOptions": {
+        "outDir": "./public", // Output compiled JS files to the public folder
+        "rootDir": "./src/frontend" // Only include the front-end files
+    },
+    "include": [
+        "src/frontend/**/*"
+    ], // Include only front-end files
+    "exclude": []
+}

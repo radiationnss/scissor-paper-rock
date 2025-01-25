@@ -1,0 +1,9 @@
+{
+    "compilerOptions": {
+        "module": "ES6", // Use ES6 modules
+        "target": "ES6", // Target ES6
+        "strict": true, // Enable strict type-checking
+        "esModuleInterop": true,
+        "skipLibCheck": true
+    }
+}

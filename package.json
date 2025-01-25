@@ -1,0 +1,27 @@
+{
+    "name": "rock-paper-scissors",
+    "version": "1.0.0",
+    "main": "index.js",
+    "scripts": {
+        "build-frontend": "tsc -p tsconfig.frontend.json",
+        "build-backend": "tsc -p tsconfig.backend.json",
+        "build": "npm run build-frontend && npm run build-backend",
+        "start-backend": "node src/backend/server.js",
+        "start-frontend": "http-server public -p 3000",
+        "start": "concurrently \"npm run build && npm run start-backend\" \"npm run start-frontend\""
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "description": "",
+    "dependencies": {
+        "@types/ws": "^8.5.14",
+        "ws": "^8.18.0"
+    },
+    "devDependencies": {
+        "@types/node": "^22.10.10",
+        "concurrently": "^9.1.2",
+        "http-server": "^14.1.1",
+        "typescript": "^5.7.3"
+    }
+}
