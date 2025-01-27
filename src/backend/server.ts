@@ -1,47 +1,51 @@
 import WebSocket, { WebSocketServer } from 'ws';
+import { v4 as uuidv4 } from 'uuid';
 
 const wss = new WebSocketServer({ port: 8080 });
 
 console.log("WebSocket server is running on ws://localhost:8080");
 
-const players: WebSocket[] = [];
-const choices: { [key: string]: string } = {};
+const sessions = new Map<string, { ws: WebSocket; data: any }>();
 
 wss.on('connection', (ws: WebSocket) => {
-    console.log('Client connected');
-    players.push(ws);
+    const sessionId = uuidv4();
+    sessions.set(sessionId, { ws, data: {} });
 
-    if (players.length === 2) {
-        players.forEach((player) => {
-            player.send('Game starts! Make your choice.');
-        });
-    }
+    console.log(`Client connected with sessionId: ${sessionId}`);
+
+    ws.send(JSON.stringify({ type: 'session', sessionId }));
 
     ws.on('message', (message: string) => {
-        const playerIndex = players.indexOf(ws);
-        const choice = message.toString().toLowerCase();
-        choices[playerIndex] = choice;
+        const data = JSON.parse(message);
 
-        console.log(`Player ${playerIndex + 1} chose: ${choice}`);
+        if (!data.sessionId || !sessions.has(data.sessionId)) {
+            console.error('Invalid sessionId');
+            return;
 
-        if (Object.keys(choices).length === 2) {
-            const [player1Choice, player2Choice] = [choices[0], choices[1]];
-            const result = determineWinner(player1Choice, player2Choice);
-
-            players.forEach((player, index) => {
-                player.send(`You chose ${choices[index]}, opponent chose ${choices[1 - index]}. ${result}`);
-            });
-
-            // Reset choices for the next round
-            Object.keys(choices).forEach((key) => delete choices[key]);
         }
+
+        const session = sessions.get(data.sessionId);
+        if (!session) return;
+        session.data.choice = data.choice;
+        console.log(`player with session ID ${data.sessionId} chose: ${data.choice}`);
+
+        if (sessions.size === 2 && Array.from(sessions.values()).every((s) => s.data.choise)) {
+            const [player1, player2] = Array.from(sessions.values());
+            const result = determineWinner(player1.data.choice, player2.data.choice);
+            player1.ws.send(JSON.stringify({ type: 'result', result, yourChoice: player1.data.choice, opponentChoice: player2.data.choice }));
+            player2.ws.send(JSON.stringify({ type: 'result', result, yourChoice: player2.data.choice, opponentChoice: player1.data.choice }));
+
+            sessions.forEach((session) => {
+                session.data.choice = null;
+            });
+        }
+
     });
 
+
     ws.on('close', () => {
-        console.log('Client disconnected');
-        const playerIndex = players.indexOf(ws);
-        players.splice(playerIndex, 1);
-        delete choices[playerIndex];
+        console.log(`Client with session ID ${sessionId} disconnected`);
+        sessions.delete(sessionId);
     });
 });
 

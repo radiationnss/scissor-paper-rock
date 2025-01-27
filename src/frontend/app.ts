@@ -3,6 +3,8 @@ const ws = new WebSocket('ws://localhost:8080');
 const resultDiv = document.getElementById('result') as HTMLDivElement;
 const buttons = document.querySelectorAll('.choices button');
 
+let sessionId: string | null = null;
+
 // Handle WebSocket connection
 ws.onopen = () => {
     console.log('Connected to WebSocket server');
@@ -11,8 +13,15 @@ ws.onopen = () => {
 
 // Handle WebSocket messages
 ws.onmessage = (event) => {
-    const message = event.data;
-    resultDiv.textContent = message;
+    console.log(event);
+    const message = JSON.parse(event.data);
+
+    if (message.type === 'session') {
+        sessionId = message.sessionId;
+        console.log(`sessionId: ${sessionId}`);
+    } else if (message.type === 'result') {
+        resultDiv.textContent = `You chose ${message.yourChoice}, opponent chose ${message.opponentChoice}. ${message.result}`
+    }
 };
 
 // Handle WebSocket errors
@@ -30,7 +39,12 @@ ws.onclose = () => {
 // Add event listeners to buttons
 buttons.forEach((button) => {
     button.addEventListener('click', () => {
+        if (!sessionId) {
+            console.error(`sessionId not set`);
+            return;
+
+        }
         const choice = button.id; // rock, paper, or scissors
-        ws.send(choice);
+        ws.send(JSON.stringify({ sessionId, choice }));
     });
 });
