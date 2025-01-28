@@ -3,9 +3,9 @@ const ws = new WebSocket('ws://localhost:8080');
 const playerName = document.getElementById('playerName') as HTMLDivElement;
 const resultDiv = document.getElementById('result') as HTMLDivElement;
 const buttons = document.querySelectorAll('.choices button');
+localStorage.clear();
 
-let sessionId: string | null = null;
-
+let sessionId: string | null;//= localStorage.getItem('sessionId'); // Load sessionId from localStorage
 // Handle WebSocket connection
 ws.onopen = () => {
     console.log('Connected to WebSocket helo');
@@ -20,10 +20,19 @@ ws.onmessage = (event) => {
     if (message.type == 'session') {
         sessionId = message.sessionId;
         console.log(`sessionId: ${sessionId}`);
-
+        localStorage.setItem('sessionId', message.sessionId); // Store sessionId in localStorage
         playerName.textContent = `You are ${message.playerName}`;
     } else if (message.type === 'result') {
-        resultDiv.textContent = `You chose ${message.yourChoice}, opponent chose ${message.opponentChoice}. ${message.result}`
+        let WinLose = 'Lose';
+        if (localStorage.getItem('sessionId') === message.sessionId) {
+            console.log(localStorage.getItem('sessionId'));
+
+            WinLose = "Win";
+        }
+        resultDiv.textContent = `${WinLose}, You choose ${message.yourChoice}, opponent chose ${message.opponentChoice}. ${message.result}`
+        // if (localStorage.getItem('sessionId') == message.sessionId) {
+        //     loseWin = 
+        // }
     }
 };
 

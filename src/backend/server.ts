@@ -1,7 +1,5 @@
 import WebSocket, { WebSocketServer } from 'ws';
 import { v4 as uuidv4 } from 'uuid';
-import { log } from 'console';
-// import { log } from 'console';
 
 const wss = new WebSocketServer({ port: 8080 });
 
@@ -40,10 +38,15 @@ wss.on('connection', (ws: WebSocket) => {
 
         if (sessions.size === 2 && Array.from(sessions.values()).every((s) => s.data.choice)) {
             console.log("Both players have made their choice");
-            const [player1, player2] = Array.from(sessions.values());
-            const result = determineWinner(player1.data.choice, player2.data.choice);
-            player1.ws.send(JSON.stringify({ type: 'result', result, yourChoice: player1.data.choice, opponentChoice: player2.data.choice }));
-            player2.ws.send(JSON.stringify({ type: 'result', result, yourChoice: player2.data.choice, opponentChoice: player1.data.choice }));
+            const [player1, player2] = Array.from(sessions.entries()).map(([sessionId, value]) => ({
+                sessionId,
+                ...value,
+            }));
+
+
+            const result = determineWinner(player1, player2);
+            player1.ws.send(JSON.stringify({ type: 'result', yourChoice: player1.data.choice, opponentChoice: player2.data.choice, sessionId: result }));
+            player2.ws.send(JSON.stringify({ type: 'result', yourChoice: player2.data.choice, opponentChoice: player1.data.choice, sessionId: result }));
 
             sessions.forEach((session) => {
                 session.data.choice = null;
@@ -59,7 +62,9 @@ wss.on('connection', (ws: WebSocket) => {
     });
 });
 
-function determineWinner(choice1: string, choice2: string): string {
+function determineWinner(player1: any, player2: any): string {
+    let choice1 = player1.data.choice;
+    let choice2 = player2.data.choice;
     if (choice1 === choice2) {
         return 'It\'s a tie!';
     } else if (
@@ -67,8 +72,8 @@ function determineWinner(choice1: string, choice2: string): string {
         (choice1 === 'paper' && choice2 === 'rock') ||
         (choice1 === 'scissors' && choice2 === 'paper')
     ) {
-        return 'Player 1 wins!';
+        return player1.sessionId;
     } else {
-        return 'Player 2 wins!';
+        return player2.sessionId;
     }
 }
