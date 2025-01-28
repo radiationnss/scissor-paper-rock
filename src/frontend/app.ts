@@ -1,5 +1,6 @@
 const ws = new WebSocket('ws://localhost:8080');
 
+const playerName = document.getElementById('playerName') as HTMLDivElement;
 const resultDiv = document.getElementById('result') as HTMLDivElement;
 const buttons = document.querySelectorAll('.choices button');
 
@@ -7,7 +8,7 @@ let sessionId: string | null = null;
 
 // Handle WebSocket connection
 ws.onopen = () => {
-    console.log('Connected to WebSocket server');
+    console.log('Connected to WebSocket helo');
     resultDiv.textContent = 'Connected! Make your choice.';
 };
 
@@ -16,9 +17,11 @@ ws.onmessage = (event) => {
     console.log(event);
     const message = JSON.parse(event.data);
 
-    if (message.type === 'session') {
+    if (message.type == 'session') {
         sessionId = message.sessionId;
         console.log(`sessionId: ${sessionId}`);
+
+        playerName.textContent = `You are ${message.playerName}`;
     } else if (message.type === 'result') {
         resultDiv.textContent = `You chose ${message.yourChoice}, opponent chose ${message.opponentChoice}. ${message.result}`
     }
